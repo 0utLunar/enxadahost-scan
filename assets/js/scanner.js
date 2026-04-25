@@ -1,16 +1,16 @@
-import { HOST } from './config.js';
 import { state } from './state.js';
 import {
   showToast,
   updateStats,
   updateVersionFilter,
   applyFilters,
+  updateHostDisplay,
   closeServerOverlay,
 } from './ui.js';
 import { getEl } from './dom.js';
 
 async function checkServer(port, timeoutMs) {
-  const url = `https://api.mcstatus.io/v2/status/java/${HOST}:${port}`;
+  const url = `https://api.mcstatus.io/v2/status/java/${state.host}:${port}`;
 
   try {
     const controller = new AbortController();
@@ -48,10 +48,16 @@ async function checkServer(port, timeoutMs) {
 }
 
 export async function startScan() {
+  const host = getEl('host-input').value.trim();
   const portStart = parseInt(getEl('port-start').value, 10);
   const portEnd = parseInt(getEl('port-end').value, 10);
   const concurrency = parseInt(getEl('concurrency').value, 10);
   const timeout = parseInt(getEl('timeout').value, 10);
+
+  if (!host || /\s/.test(host)) {
+    showToast('Host invalido', 'red');
+    return;
+  }
 
   if (Number.isNaN(portStart) || Number.isNaN(portEnd) || portStart > portEnd) {
     showToast('Intervalo de portas inválido', 'red');
@@ -63,10 +69,14 @@ export async function startScan() {
     return;
   }
 
+  state.host = host;
+  updateHostDisplay();
+
   clearResults();
   state.scanning = true;
   state.stopRequested = false;
 
+  getEl('host-input').disabled = true;
   getEl('btn-scan').disabled = true;
   getEl('btn-stop').disabled = false;
   getEl('btn-stop').style.display = '';
@@ -113,6 +123,7 @@ export async function startScan() {
   await Promise.all(workers);
 
   state.scanning = false;
+  getEl('host-input').disabled = false;
   getEl('btn-scan').disabled = false;
   getEl('btn-stop').style.display = 'none';
 

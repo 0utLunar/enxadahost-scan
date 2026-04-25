@@ -16,7 +16,7 @@
         <div class="logo-icon">⛏</div>
         <div>
           <h1>MC<span>Scanner</span></h1>
-          <p>enx-ext-6.enx.host · varredura de portas</p>
+          <p id="host-badge">enx-ext-6.enx.host · varredura de portas</p>
         </div>
       </div>
       <div class="stats-bar">
@@ -42,6 +42,10 @@
 
   <!-- Controls -->
   <div class="controls-panel">
+    <div class="ctrl-group" style="min-width:240px">
+      <label>Host</label>
+      <input type="text" id="host-input" value="enx-ext-6.enx.host" placeholder="ex: enx-ext-6.enx.host">
+    </div>
     <div class="ctrl-group">
       <label>Porta inicial</label>
       <input type="number" id="port-start" value="10000" min="1" max="65535">

@@ -1,4 +1,4 @@
-import { HOST, PAGE_SIZE } from './config.js';
+import { PAGE_SIZE } from './config.js';
 import { state } from './state.js';
 import { escHtml } from './utils.js';
 import {
@@ -20,6 +20,14 @@ export function showToast(msg, type = '') {
   toast._timer = setTimeout(() => {
     toast.className = 'toast';
   }, 3000);
+}
+
+export function updateHostDisplay() {
+  const hostInput = getEl('host-input');
+  const hostBadge = getEl('host-badge');
+
+  if (hostInput) hostInput.value = state.host;
+  if (hostBadge) hostBadge.textContent = `${state.host} · varredura de portas`;
 }
 
 export function updateStats() {
@@ -96,7 +104,7 @@ function serverCard(result) {
   if (!result.checked) {
     return `<div class="server-card checking">
       <div class="card-top">
-        <span class="card-ip">${HOST}:${result.port}</span>
+        <span class="card-ip">${state.host}:${result.port}</span>
         <span class="status-dot checking"></span>
       </div>
       <span class="card-skeleton" style="width:80px;height:14px;display:block;margin-bottom:8px;border-radius:4px"></span>
@@ -107,7 +115,7 @@ function serverCard(result) {
   if (!result.online) {
     return `<div class="server-card offline is-clickable" data-port="${result.port}">
       <div class="card-top">
-        <span class="card-ip">${HOST}:${result.port}</span>
+        <span class="card-ip">${state.host}:${result.port}</span>
         <span class="status-dot offline"></span>
       </div>
       <span style="font-size:11px;color:var(--red);font-family:'JetBrains Mono',monospace">offline</span>
@@ -121,7 +129,7 @@ function serverCard(result) {
 
   return `<div class="server-card online is-clickable" data-port="${result.port}">
     <div class="card-top">
-      <span class="card-ip">${HOST}:${result.port}</span>
+      <span class="card-ip">${state.host}:${result.port}</span>
       <span class="status-dot online"></span>
     </div>
     ${result.version ? `<span class="card-version">${escHtml(result.version)}</span>` : ''}
@@ -212,7 +220,7 @@ function renderOverlayPlayers(sample = []) {
 
 export function openServerOverlay(server) {
   state.activeOverlayServer = server;
-  overlayTitleEl.textContent = `${HOST}:${server.port}`;
+  overlayTitleEl.textContent = `${state.host}:${server.port}`;
   overlayStatusEl.textContent = server.online ? 'online' : 'offline';
   overlayStatusEl.className = `overlay-chip ${server.online ? 'online' : 'offline'}`;
   overlayPlayersEl.textContent = `${server.players || 0}/${server.maxPlayers || 0} jogadores`;
@@ -231,7 +239,7 @@ export function closeServerOverlay() {
 export async function copyActiveServerAddress() {
   if (!state.activeOverlayServer) return;
 
-  const address = `${HOST}:${state.activeOverlayServer.port}`;
+  const address = `${state.host}:${state.activeOverlayServer.port}`;
 
   try {
     await navigator.clipboard.writeText(address);
@@ -275,4 +283,6 @@ export function initOverlayHandlers() {
       closeServerOverlay();
     }
   });
+
+  updateHostDisplay();
 }
