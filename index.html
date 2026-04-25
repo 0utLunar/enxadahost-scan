@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MC Scanner — enx.host</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">⛏</div>
+        <div>
+          <h1>MC<span>Scanner</span></h1>
+          <p>enx-ext-6.enx.host · varredura de portas</p>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat">
+          <div class="stat-val" id="stat-online">0</div>
+          <div class="stat-label">Online</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val red" id="stat-offline">0</div>
+          <div class="stat-label">Offline</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val amber" id="stat-players">0</div>
+          <div class="stat-label">Jogadores</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="stat-scanned" style="color:var(--text-muted)">0</div>
+          <div class="stat-label">Varridos</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Controls -->
+  <div class="controls-panel">
+    <div class="ctrl-group">
+      <label>Porta inicial</label>
+      <input type="number" id="port-start" value="10000" min="1" max="65535">
+    </div>
+    <div class="ctrl-group">
+      <label>Porta final</label>
+      <input type="number" id="port-end" value="10200" min="1" max="65535">
+    </div>
+    <div class="ctrl-group">
+      <label>Concorrência</label>
+      <select id="concurrency">
+        <option value="5">5 simultâneas</option>
+        <option value="10" selected>10 simultâneas</option>
+        <option value="20">20 simultâneas</option>
+        <option value="30">30 simultâneas</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <label>Timeout (ms)</label>
+      <input type="number" id="timeout" value="5000" min="1000" max="15000" step="500">
+    </div>
+    <div class="ctrl-group" style="margin-left:auto">
+      <label>&nbsp;</label>
+      <div class="ctrl-row">
+        <button class="btn btn-primary" id="btn-scan" onclick="startScan()">▶ Iniciar Varredura</button>
+        <button class="btn btn-stop" id="btn-stop" onclick="stopScan()" style="display:none">■ Parar</button>
+        <button class="btn btn-ghost" onclick="clearResults()">✕ Limpar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-bar-wrap" id="progress-wrap">
+    <div class="progress-info">
+      <span id="progress-text">Iniciando...</span>
+      <span class="progress-status" id="progress-pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-panel">
+    <div class="ctrl-group">
+      <label>Filtrar versão</label>
+      <select id="filter-version" onchange="applyFilters()">
+        <option value="">Todas as versões</option>
+      </select>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="ctrl-group">
+      <label>Mín. jogadores</label>
+      <input type="number" id="filter-min-players" value="0" min="0" placeholder="0" style="width:90px" oninput="applyFilters()">
+    </div>
+    <div class="ctrl-group">
+      <label>Máx. jogadores</label>
+      <input type="number" id="filter-max-players" value="" min="0" placeholder="∞" style="width:90px" oninput="applyFilters()">
+    </div>
+    <div class="filter-divider"></div>
+    <div class="ctrl-group">
+      <label>Mostrar</label>
+      <select id="filter-status" onchange="applyFilters()">
+        <option value="all">Todos</option>
+        <option value="online">Só online</option>
+        <option value="offline">Só offline</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <label>Ordenar por</label>
+      <select id="filter-sort" onchange="applyFilters()">
+        <option value="port">Porta</option>
+        <option value="players-desc">Jogadores ↓</option>
+        <option value="players-asc">Jogadores ↑</option>
+        <option value="version">Versão</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div class="servers-header">
+    <h2>Servidores <span id="results-count" style="color:var(--green)">0</span></h2>
+    <span class="page-info" id="page-info"></span>
+  </div>
+  <div class="servers-grid" id="servers-grid">
+    <div class="empty-state">
+      <div class="big">⛏</div>
+      <p>Configure o intervalo de portas e inicie a varredura</p>
+    </div>
+  </div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="server-overlay" aria-hidden="true">
+  <div class="overlay-panel" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+    <div class="overlay-head">
+      <div>
+        <p class="overlay-kicker">Detalhes do servidor</p>
+        <h3 id="overlay-title">enx-ext-6.enx.host:00000</h3>
+      </div>
+      <button class="overlay-close" id="overlay-close" type="button" aria-label="Fechar">✕</button>
+    </div>
+
+    <div class="overlay-meta">
+      <span id="overlay-status" class="overlay-chip">offline</span>
+      <span id="overlay-players">0/0 jogadores</span>
+    </div>
+
+    <button class="btn btn-primary overlay-copy" id="overlay-copy" type="button">Copiar IP:Porta</button>
+
+    <div class="overlay-section">
+      <h4>Jogadores online</h4>
+      <ul id="overlay-player-list" class="overlay-player-list"></ul>
+    </div>
+  </div>
+</div>
+<script type="module" src="assets/js/script.js"></script>
+</body>
+</html>
