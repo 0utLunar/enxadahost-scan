@@ -1,0 +1,18 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+nbproject/private/
+.settings/
+.project
+.classpath
+
+# Build
+target/
+build/
+bin/
+*.class
+
+# OS
+.DS_Store
+Thumbs.db
